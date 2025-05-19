@@ -1,0 +1,131 @@
+import { Request, Response } from "express";
+import { prisma } from "../config/prisma";
+import { startOfDay } from "date-fns";
+
+export const registerMorning = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const userId = req.user.id;
+    const { tipo } = req.body;
+
+    const now = new Date();
+    const dateOnly = startOfDay(now);
+
+    const attendance = await prisma.attendance.findFirst({
+      where: { userId, date: dateOnly },
+    });
+
+    if (tipo === "entrada") {
+      if (attendance?.morningIn) {
+        return res
+          .status(400)
+          .json({ error: "Ya registraste la entrada de la mañana" });
+      }
+
+      if (attendance) {
+        await prisma.attendance.update({
+          where: { id: attendance.id },
+          data: { morningIn: now },
+        });
+      } else {
+        await prisma.attendance.create({
+          data: { userId, date: dateOnly, morningIn: now },
+        });
+      }
+
+      return res.json("Entrada mañana registrada Correctamente");
+    }
+
+    if (tipo === "salida") {
+      if (!attendance?.morningIn) {
+        return res
+          .status(400)
+          .json({ error: "Primero debes registrar la entrada de la mañana" });
+      }
+
+      if (attendance?.morningOut) {
+        return res
+          .status(400)
+          .json({ error: "Ya registraste la salida de la mañana" });
+      }
+
+      await prisma.attendance.update({
+        where: { id: attendance.id },
+        data: { morningOut: now },
+      });
+
+      return res.json("Salida mañana registrada Correctamente");
+    }
+
+    res.status(400).json({ error: "Tipo inválido" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+export const registerAfternoon = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const userId = req.user.id;
+    const { tipo } = req.body;
+
+    const now = new Date();
+    const dateOnly = startOfDay(now);
+
+    const attendance = await prisma.attendance.findFirst({
+      where: { userId, date: dateOnly },
+    });
+
+    if (tipo === "entrada") {
+      if (attendance?.afternoonIn) {
+        return res
+          .status(400)
+          .json({ error: "Ya registraste la entrada de la tarde" });
+      }
+
+      if (attendance) {
+        await prisma.attendance.update({
+          where: { id: attendance.id },
+          data: { afternoonIn: now },
+        });
+      } else {
+        await prisma.attendance.create({
+          data: { userId, date: dateOnly, afternoonIn: now },
+        });
+      }
+
+      return res.json("Entrada tarde registrada Correctamente");
+    }
+
+    if (tipo === "salida") {
+      if (!attendance?.afternoonIn) {
+        return res
+          .status(400)
+          .json({ error: "Primero debes registrar la entrada de la tarde" });
+      }
+
+      if (attendance?.afternoonOut) {
+        return res
+          .status(400)
+          .json({ error: "Ya registraste la salida de la tarde" });
+      }
+
+      await prisma.attendance.update({
+        where: { id: attendance.id },
+        data: { afternoonOut: now },
+      });
+
+      return res.json("salida tarde registrada Correctamente");
+    }
+
+    res.status(400).json({ error: "Tipo inválido" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};

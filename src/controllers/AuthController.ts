@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../config/prisma";
 import { checkPassword, hashPassword } from "../utils/auth";
 import { generateJWT } from "../utils/jwt";
 import cloudinary from "../config/cloudinary";
@@ -7,6 +6,7 @@ import { v4 as uuid } from "uuid";
 import formidable from "formidable";
 import { AuthEmail } from "../emails/AuthEmail";
 import { generateToken } from "../utils/token";
+import { prisma } from "../config/prisma";
 
 export const createAccount = async (
   req: Request,
@@ -45,13 +45,88 @@ export const createAccount = async (
     });
 
     res.send(
-      "Cuenta creada correctamente, dile al administrador que te comparta el codigo de confirmación"
+      "Cuenta creada correctamente, hemos enviado un codigo de confirmacion a tu email"
     );
   } catch (error) {
     console.log(error);
   }
 };
 
+export const confirmAccount = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { token } = req.body;
+    const tokenExists = await prisma.user.findFirst({
+      where: {
+        token: token,
+      },
+    });
+    if (!tokenExists) {
+      const error = new Error("Token no válido");
+      return res.status(404).json({ error: error.message });
+    }
+    await prisma.user.update({
+      where: {
+        id: tokenExists.id,
+      },
+      data: {
+        confirmed: true,
+        token: "",
+      },
+    });
+    res.send("Cuenta confirmada correctamente");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Hubo un error" });
+  }
+};
+export const login = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { email, password } = req.body;
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) {
+      const error = new Error("Usuario no encontrado");
+      return res.status(404).json({ error: error.message });
+    }
+
+    if (!user.confirmed) {
+      const token = generateToken();
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          token: token,
+        },
+      });
+      AuthEmail.sendConfirmationEmail({
+        email: user.email,
+        name: user.name,
+        token: token,
+      });
+      const error = new Error(
+        "La cuenta no ha sido confirmada, hemos enviado un codigo de confirmacion a tu email"
+      );
+      return res.status(401).json({ error: error.message });
+    }
+    const isPasswordCorrect = await checkPassword(password, user.password);
+    if (!isPasswordCorrect) {
+      const error = new Error("Password Incorrecto");
+      return res.status(401).json({ error: error.message });
+    }
+    const token = generateJWT({ id: user.id });
+    res.send(token);
+  } catch (error) {
+    res.status(500).json({ error: "Hubo un error" });
+  }
+};
 export const forgotPassword = async (
   req: Request,
   res: Response
@@ -81,9 +156,7 @@ export const forgotPassword = async (
       name: user.name,
       token: token,
     });
-    res.send(
-      "Solicitale al administrador que te comparta el codigo de confirmación"
-    );
+    res.send("Hemos enviado un codigo de confirmacion a tu email");
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Hubo un error" });
@@ -147,93 +220,13 @@ export const requestConfirmationCode = async (
       name: user.name,
       token: confirmed,
     });
-    res.send("Solicitale al administrador el codigo de confirmación");
+    res.send("Hemos enviado un codigo de confirmacion a tu email");
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Hubo un error" });
   }
 };
 
-export const confirmAccount = async (
-  req: Request,
-  res: Response
-): Promise<any> => {
-  try {
-    const { token } = req.body;
-    const tokenExists = await prisma.user.findFirst({
-      where: {
-        token: token,
-      },
-    });
-    if (!tokenExists) {
-      const error = new Error("Token no válido");
-      return res.status(404).json({ error: error.message });
-    }
-    await prisma.user.update({
-      where: {
-        id: tokenExists.id,
-      },
-      data: {
-        confirmed: true,
-        token: "",
-      },
-    });
-    res.send("Cuenta confirmada correctamente");
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Hubo un error" });
-  }
-};
-
-export const login = async (req: Request, res: Response): Promise<any> => {
-  try {
-    const { email, password, role } = req.body;
-    const user = await prisma.user.findFirst({
-      where: {
-        email: email,
-      },
-    });
-
-    if (!user) {
-      const error = new Error("Usuario no encontrado");
-      return res.status(404).json({ error: error.message });
-    }
-
-    if (user.role !== role) {
-      const error = new Error("El usuario no tiene el rol necesario");
-      return res.status(401).json({ error: error.message });
-    }
-    if (!user.confirmed) {
-      const token = generateToken();
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          token: token,
-        },
-      });
-      AuthEmail.sendConfirmationEmail({
-        email: user.email,
-        name: user.name,
-        token: token,
-      });
-      const error = new Error(
-        "La cuenta no ha sido confirmada,debes ir a la pagina de confirmacion e ingresar el codigo de confirmacion que te brinde el administrador"
-      );
-      return res.status(401).json({ error: error.message });
-    }
-    const isPasswordCorrect = await checkPassword(password, user.password);
-    if (!isPasswordCorrect) {
-      const error = new Error("Password Incorrecto");
-      return res.status(401).json({ error: error.message });
-    }
-    const token = generateJWT({ id: user.id });
-    res.send(token);
-  } catch (error) {
-    res.status(500).json({ error: "Hubo un error" });
-  }
-};
 export const uploadImage = async (
   req: Request,
   res: Response,
@@ -400,7 +393,7 @@ export const updateCurrentUserPassword = async (
   }
 };
 
-export const updatePasswordWithToken = async (
+export const resetPasswordWithToken = async (
   req: Request,
   res: Response
 ): Promise<any> => {
@@ -445,7 +438,7 @@ export const updateUserStatus = async (
   try {
     await prisma.user.update({
       where: {
-        id: +userId,
+        id: userId,
       },
       data: {
         confirmed: status,
@@ -454,28 +447,5 @@ export const updateUserStatus = async (
     res.send("Usuario actualizado correctamente");
   } catch (error) {
     res.status(500).send("Hubo un error");
-  }
-};
-
-export const getTokensConfirmUsers = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const tokens = await prisma.user.findMany({
-      where: {
-        OR: [{ token: { not: "" } }, { confirmed: false }],
-      },
-      select: {
-        name: true,
-        token: true,
-        email: true,
-      },
-    });
-
-    res.status(200).json(tokens);
-  } catch (error) {
-    console.error("Error fetching users with tokens:", error);
-    res.status(500).json({ message: "Error fetching users with tokens" });
   }
 };
