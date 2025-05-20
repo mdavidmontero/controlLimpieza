@@ -31,7 +31,7 @@ export const createAccount = async (
       name,
       email,
       password: passwordHash,
-      confirmed: false,
+      confirmed: true,
       token: generateToken(),
     };
     await prisma.user.create({
@@ -44,9 +44,7 @@ export const createAccount = async (
       token: data.token,
     });
 
-    res.send(
-      "Cuenta creada correctamente, hemos enviado un codigo de confirmacion a tu email"
-    );
+    res.send("Cuenta creada correctamente");
   } catch (error) {
     console.log(error);
   }
@@ -112,7 +110,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
         token: token,
       });
       const error = new Error(
-        "La cuenta no ha sido confirmada, hemos enviado un codigo de confirmacion a tu email"
+        "La cuenta no ha sido confirmada, solicitale al administrador el codigo de confirmacion"
       );
       return res.status(401).json({ error: error.message });
     }
@@ -156,7 +154,9 @@ export const forgotPassword = async (
       name: user.name,
       token: token,
     });
-    res.send("Hemos enviado un codigo de confirmacion a tu email");
+    res.send(
+      "Hemos enviado un codigo de confirmacion, solicitaselo al administrador"
+    );
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Hubo un error" });
@@ -220,7 +220,9 @@ export const requestConfirmationCode = async (
       name: user.name,
       token: confirmed,
     });
-    res.send("Hemos enviado un codigo de confirmacion a tu email");
+    res.send(
+      "Hemos enviado un codigo de confirmacion, solicitaselo al administrador"
+    );
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Hubo un error" });
