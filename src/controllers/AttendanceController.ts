@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
-import { startOfDay } from "date-fns";
+import { endOfDay, isValid, parseISO, startOfDay } from "date-fns";
 
 export const registerMorning = async (
   req: Request,
@@ -157,5 +157,47 @@ export const getAttendandesUser = async (
     res.status(200).json(attendances);
   } catch (error) {
     res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+export const getAttendanceHistoryMonth = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { from, to } = req.query;
+    if (!from || !to) {
+      return res.status(400).json({
+        message: "La fecha de inicio y la de fin son obligatorias",
+      });
+    }
+    const startDate = parseISO(from as string);
+    const endDate = parseISO(to as string);
+    if (!isValid(startDate) || !isValid(endDate)) {
+      return res.status(400).json({
+        message: "Las fechas proporcionadas no son válidas",
+      });
+    }
+    const startOfDayDate = startOfDay(startDate);
+    const endOfDayDate = endOfDay(endDate);
+    const whereClause: any = {
+      date: {
+        gte: startOfDayDate,
+        lte: endOfDayDate,
+      },
+      userId: req.user.id,
+    };
+    if (req.user.id !== "") {
+      whereClause.userId = req.user.id;
+    }
+    const attendances = await prisma.attendance.findMany({
+      where: whereClause,
+      orderBy: {
+        date: "desc",
+      },
+    });
+    res.status(200).json(attendances);
+  } catch (error) {
+    console.error(error);
   }
 };
