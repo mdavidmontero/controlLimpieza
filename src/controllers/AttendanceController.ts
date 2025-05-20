@@ -129,3 +129,33 @@ export const registerAfternoon = async (
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+
+export const getAttendandesUser = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const attendances = await prisma.attendance.findFirst({
+      where: {
+        userId: req.user.id,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.status(200).json(attendances);
+  } catch (error) {
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};

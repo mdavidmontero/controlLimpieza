@@ -3,6 +3,7 @@ import { body, param } from "express-validator";
 import { handleInputErrors } from "../middleware/validation";
 import { isAuthenticated } from "../middleware/auth";
 import {
+  getAttendandesUser,
   registerAfternoon,
   registerMorning,
 } from "../controllers/AttendanceController";
@@ -24,4 +25,5 @@ router.post(
   registerAfternoon
 );
 
+router.get("/", isAuthenticated, getAttendandesUser);
 export default router;
