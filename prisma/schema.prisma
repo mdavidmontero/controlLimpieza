@@ -47,3 +47,30 @@ enum Role {
   USER
   ADMIN
 }
+
+// Limpieza de centro de acopio
+model LimpiezaAcopio {
+  id                  Int      @id @default(autoincrement())
+  userId              String
+  date                DateTime
+  baños              Boolean?
+  zonaSecadoras       Boolean?
+  patiosMarquesinas   Boolean?
+  oficinas            Boolean?
+  recepcion           Boolean?
+  cafetería          Boolean?
+  labcacao            Boolean?
+  labcafe             Boolean?
+  labrones            Boolean?
+  casahospedaje       Boolean?
+  aspirado            Boolean?
+  limpiezapisos       Boolean?
+  dispobasuras        Boolean?
+  barridopisos        Boolean?
+  limpiezasuperficies Boolean?
+  lavadosuperficies   Boolean?
+  lavadoparedes       Boolean?
+  responsable         String
+  insumosutilizados   String
+  imagenes            Json?
+}
