@@ -226,5 +226,53 @@ export const getAttendanceHistoryMonth = async (
     res.status(200).json(attendances);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+export const getAttendanceHistoryAll = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { fecha } = req.query;
+    if (!fecha) {
+      return res.status(400).json({
+        message: "La fecha es obligatoria",
+      });
+    }
+    const startDate = parseISO(fecha as string);
+    if (!isValid(startDate)) {
+      return res.status(400).json({
+        message: "La fecha proporcionada no es válida",
+      });
+    }
+    const startOfDayDate = startOfDay(startDate);
+    const endOfDayDate = endOfDay(startDate);
+
+    const attendances = await prisma.attendance.findMany({
+      where: {
+        date: {
+          gte: startOfDayDate,
+          lte: endOfDayDate,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: {
+        date: "desc",
+      },
+    });
+    res.send(attendances);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };

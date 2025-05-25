@@ -3,6 +3,7 @@ import { body, param } from "express-validator";
 import { handleInputErrors } from "../middleware/validation";
 import { isAuthenticated } from "../middleware/auth";
 import {
+  getAttendanceHistoryAll,
   getAttendanceHistoryMonth,
   getAttendandesUser,
   registerAfternoon,
@@ -28,4 +29,5 @@ router.post(
 
 router.get("/", isAuthenticated, getAttendandesUser);
 router.get("/history", isAuthenticated, getAttendanceHistoryMonth);
+router.get("/history-all", isAuthenticated, getAttendanceHistoryAll);
 export default router;
