@@ -33,16 +33,22 @@ model User {
 }
 
 model Attendance {
-  id           String    @id @default(uuid())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id])
-  date         DateTime
-  morningIn    DateTime?
-  morningOut   DateTime?
-  afternoonIn  DateTime?
-  afternoonOut DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                   String    @id @default(uuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id])
+  date                 DateTime
+  morningIn            DateTime?
+  morningInLocation    Json?
+  morningOut           DateTime?
+  morningOutLocation   Json?
+  anotacionesMorning   String?
+  afternoonIn          DateTime?
+  afternoonInLocation  Json?
+  afternoonOut         DateTime?
+  afternoonOutLocation Json?
+  anotacionesAfternoon String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   @@unique([userId, date])
 }
