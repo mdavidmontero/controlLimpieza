@@ -143,6 +143,7 @@ export const registerAfternoon = async (
         data: {
           afternoonOut: now,
           afternoonOutLocation: ubicacion,
+          anotacionesAfternoon: anotaciones,
         },
       });
 
