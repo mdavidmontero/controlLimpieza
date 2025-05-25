@@ -8,7 +8,7 @@ export const registerMorning = async (
 ): Promise<any> => {
   try {
     const userId = req.user.id;
-    const { tipo } = req.body;
+    const { tipo, ubicacion, anotaciones } = req.body;
 
     const now = new Date();
     const dateOnly = startOfDay(now);
@@ -27,11 +27,21 @@ export const registerMorning = async (
       if (attendance) {
         await prisma.attendance.update({
           where: { id: attendance.id },
-          data: { morningIn: now },
+          data: {
+            morningIn: now,
+            morningInLocation: ubicacion,
+            anotacionesMorning: anotaciones,
+          },
         });
       } else {
         await prisma.attendance.create({
-          data: { userId, date: dateOnly, morningIn: now },
+          data: {
+            userId,
+            date: dateOnly,
+            morningIn: now,
+            morningInLocation: ubicacion,
+            anotacionesMorning: anotaciones,
+          },
         });
       }
 
@@ -53,7 +63,10 @@ export const registerMorning = async (
 
       await prisma.attendance.update({
         where: { id: attendance.id },
-        data: { morningOut: now },
+        data: {
+          morningOut: now,
+          morningOutLocation: ubicacion,
+        },
       });
 
       return res.json("Salida mañana registrada Correctamente");
@@ -72,7 +85,7 @@ export const registerAfternoon = async (
 ): Promise<any> => {
   try {
     const userId = req.user.id;
-    const { tipo } = req.body;
+    const { tipo, ubicacion, anotaciones } = req.body;
 
     const now = new Date();
     const dateOnly = startOfDay(now);
@@ -91,11 +104,21 @@ export const registerAfternoon = async (
       if (attendance) {
         await prisma.attendance.update({
           where: { id: attendance.id },
-          data: { afternoonIn: now },
+          data: {
+            afternoonIn: now,
+            afternoonInLocation: ubicacion,
+            anotacionesAfternoon: anotaciones,
+          },
         });
       } else {
         await prisma.attendance.create({
-          data: { userId, date: dateOnly, afternoonIn: now },
+          data: {
+            userId,
+            date: dateOnly,
+            afternoonIn: now,
+            afternoonInLocation: ubicacion,
+            anotacionesAfternoon: anotaciones,
+          },
         });
       }
 
@@ -103,11 +126,11 @@ export const registerAfternoon = async (
     }
 
     if (tipo === "salida") {
-      if (!attendance?.afternoonIn) {
-        return res
-          .status(400)
-          .json({ error: "Primero debes registrar la entrada de la tarde" });
-      }
+      // if (!attendance?.afternoonIn) {
+      //   return res
+      //     .status(400)
+      //     .json({ error: "Primero debes registrar la entrada de la tarde" });
+      // }
 
       if (attendance?.afternoonOut) {
         return res
@@ -117,7 +140,10 @@ export const registerAfternoon = async (
 
       await prisma.attendance.update({
         where: { id: attendance.id },
-        data: { afternoonOut: now },
+        data: {
+          afternoonOut: now,
+          afternoonOutLocation: ubicacion,
+        },
       });
 
       return res.json("salida tarde registrada Correctamente");
