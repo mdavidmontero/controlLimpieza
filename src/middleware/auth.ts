@@ -42,6 +42,7 @@ export const isAuthenticated = async (
           email: true,
           role: true,
           image: true,
+          cargo: true,
         },
       });
       if (user) {

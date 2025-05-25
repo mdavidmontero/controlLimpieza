@@ -263,6 +263,7 @@ export const getAttendanceHistoryAll = async (
             name: true,
             email: true,
             image: true,
+            cargo: true,
           },
         },
       },

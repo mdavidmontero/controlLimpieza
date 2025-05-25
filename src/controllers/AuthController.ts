@@ -122,6 +122,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     const token = generateJWT({ id: user.id });
     res.send(token);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Hubo un error" });
   }
 };
@@ -278,7 +279,7 @@ export const updateProfile = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { name, email } = req.body;
+    const { name, email, cargo } = req.body;
     const emailExist = await prisma.user.findFirst({
       where: {
         email: email,
@@ -295,6 +296,7 @@ export const updateProfile = async (
       data: {
         name,
         email,
+        cargo,
       },
     });
     res.send("Perfil actualizado correctamente");
