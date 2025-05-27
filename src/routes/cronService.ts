@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendPDF } from "../controllers/cronController";
+import { sendPDF } from "../controllers/CronController";
 
 const router = Router();
 
