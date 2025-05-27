@@ -42,7 +42,7 @@ export const sendPDF = async (req: Request, res: Response): Promise<void> => {
         ],
       });
 
-      res.send("Correo enviado correctamente");
+      res.send("Correo enviado correctamente, revisa tu bandeja de entrada");
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: "Error al enviar el correo" });
