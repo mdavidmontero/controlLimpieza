@@ -38,11 +38,12 @@ export const createAccount = async (
       data: data,
     });
 
-    AuthEmail.sendConfirmationEmail({
+    const dataemail = await AuthEmail.sendConfirmationEmail({
       email: data.email,
       name: data.name,
       token: data.token,
     });
+    console.log(dataemail);
 
     res.send("Cuenta creada correctamente");
   } catch (error) {
