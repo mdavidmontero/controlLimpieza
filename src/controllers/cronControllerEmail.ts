@@ -6,7 +6,10 @@ import { resend } from "../config/resend";
 
 config();
 
-export const sendPDF = async (req: Request, res: Response): Promise<void> => {
+export const sendPDFEmail = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const form = formidable({ multiples: false });
 
   form.parse(req, async (err: any, fields: Fields, files: Files) => {
@@ -31,7 +34,7 @@ export const sendPDF = async (req: Request, res: Response): Promise<void> => {
     try {
       await resend.emails.send({
         from: `Reporte Asistencia del dia ${new Date().toLocaleDateString()} <asoseynekun@gruposeynekun.com>`,
-        to: "mdavidmontero6@gmail.com",
+        to: process.env.EMAIL_REPORTPDF,
         subject: "Tu reporte PDF",
         html: "<p>Adjunto encontrarás el reporte de la asistencia del dia de hoy</p>",
         attachments: [
