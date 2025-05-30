@@ -24,38 +24,54 @@ export const registerMorning = async (
           .json({ error: "Ya registraste la entrada de la mañana" });
       }
 
+      const data = {
+        morningIn: now,
+        morningInLocation: ubicacion,
+        anotacionesMorning: anotaciones,
+      };
+
       if (attendance) {
         await prisma.attendance.update({
           where: { id: attendance.id },
-          data: {
-            morningIn: now,
-            morningInLocation: ubicacion,
-            anotacionesMorning: anotaciones,
-          },
+          data,
         });
       } else {
         await prisma.attendance.create({
           data: {
             userId,
             date: dateOnly,
-            morningIn: now,
-            morningInLocation: ubicacion,
-            anotacionesMorning: anotaciones,
+            ...data,
           },
         });
       }
 
-      return res.json("Entrada mañana registrada Correctamente");
+      return res.json("Entrada mañana registrada correctamente");
     }
 
     if (tipo === "salida") {
+      const allowExitWithoutEntryId = "0403191a-6582-49ec-9375-471c51ba8856";
+
+      if (userId === allowExitWithoutEntryId && !attendance) {
+        await prisma.attendance.create({
+          data: {
+            userId,
+            date: dateOnly,
+            morningOut: now,
+            morningOutLocation: ubicacion,
+            anotacionesMorning: anotaciones,
+          },
+        });
+
+        return res.json("Salida mañana registrada correctamente");
+      }
+
       if (!attendance?.morningIn) {
         return res
           .status(400)
           .json({ error: "Primero debes registrar la entrada de la mañana" });
       }
 
-      if (attendance?.morningOut) {
+      if (attendance.morningOut) {
         return res
           .status(400)
           .json({ error: "Ya registraste la salida de la mañana" });
@@ -66,16 +82,17 @@ export const registerMorning = async (
         data: {
           morningOut: now,
           morningOutLocation: ubicacion,
+          anotacionesMorning: anotaciones,
         },
       });
 
-      return res.json("Salida mañana registrada Correctamente");
+      return res.json("Salida mañana registrada correctamente");
     }
 
-    res.status(400).json({ error: "Tipo inválido" });
+    return res.status(400).json({ error: "Tipo inválido" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    console.error("Error en registerMorning:", error);
+    return res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
