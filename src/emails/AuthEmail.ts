@@ -22,7 +22,6 @@ export class AuthEmail {
                 <p>E ingresa el código: <b>${user.token}</b></p>
             `,
     });
-    console.log(data);
   };
 
   static sendPasswordResetToken = async (user: IEmail) => {
@@ -37,7 +36,6 @@ export class AuthEmail {
                 <p>E ingresa el código: <b>${user.token}</b></p>
             `,
     });
-    console.log(data);
   };
 
   // static sendConfirmationEmail = async (user: IEmail) => {

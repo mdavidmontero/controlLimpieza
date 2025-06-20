@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import formidable from "formidable";
 import { v4 as uuid } from "uuid";
 import cloudinary from "../config/cloudinary";
+import { endOfDay, isValid, parseISO, startOfDay } from "date-fns";
 
 export const registerLimpiezaAcopio = async (
   req: Request,
@@ -11,6 +12,7 @@ export const registerLimpiezaAcopio = async (
 ): Promise<any> => {
   try {
     const {
+      date,
       userId,
       baños,
       zonaSecadoras,
@@ -29,28 +31,28 @@ export const registerLimpiezaAcopio = async (
       limpiezasuperficies,
       lavadosuperficies,
       lavadoparedes,
+      lavadopisos,
+      controlplagas,
+      limpiezaparedes,
       responsable,
       insumosutilizados,
     } = req.body;
 
-    const now = new Date();
-    const dateOnly = new Date(now.setDate(now.getDate()));
+    // const limpiezaAcopio = await prisma.limpiezaAcopio.findFirst({
+    //   where: {
+    //     userId,
+    //     date: date,
+    //   },
+    // });
 
-    const limpiezaAcopio = await prisma.limpiezaAcopio.findFirst({
-      where: {
-        userId,
-        date: dateOnly,
-      },
-    });
-
-    if (limpiezaAcopio) {
-      const error = new Error("Ya registraste la limpieza de acopio");
-      return res.status(409).json({ error: error.message });
-    }
+    // if (limpiezaAcopio) {
+    //   const error = new Error("Ya registraste la limpieza de acopio");
+    //   return res.status(409).json({ error: error.message });
+    // }
 
     const data = {
       userId,
-      date: dateOnly,
+      date: date.toLocaleString(),
       baños,
       zonaSecadoras,
       patiosMarquesinas,
@@ -68,6 +70,9 @@ export const registerLimpiezaAcopio = async (
       limpiezasuperficies,
       lavadosuperficies,
       lavadoparedes,
+      lavadopisos,
+      controlplagas,
+      limpiezaparedes,
       responsable,
       insumosutilizados,
     };
@@ -86,6 +91,7 @@ export const updateLimpiezaAcopio = async (
 ): Promise<any> => {
   try {
     const {
+      date,
       userId,
       baños,
       zonaSecadoras,
@@ -104,12 +110,12 @@ export const updateLimpiezaAcopio = async (
       limpiezasuperficies,
       lavadosuperficies,
       lavadoparedes,
+      lavadopisos,
+      controlplagas,
+      limpiezaparedes,
       responsable,
       insumosutilizados,
     } = req.body;
-
-    const now = new Date();
-    const dateOnly = new Date(now.setDate(now.getDate()));
 
     const limpiezaAcopio = await prisma.limpiezaAcopio.findFirst({
       where: {
@@ -126,7 +132,7 @@ export const updateLimpiezaAcopio = async (
 
     const data = {
       userId,
-      date: dateOnly,
+      date: date.toLocaleString(),
       baños,
       zonaSecadoras,
       patiosMarquesinas,
@@ -144,6 +150,9 @@ export const updateLimpiezaAcopio = async (
       limpiezasuperficies,
       lavadosuperficies,
       lavadoparedes,
+      lavadopisos,
+      controlplagas,
+      limpiezaparedes,
       responsable,
       insumosutilizados,
     };
@@ -237,24 +246,38 @@ export const getLimpiezaByDateActual = async (
   res: Response
 ): Promise<any> => {
   try {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-    const limpieza = await prisma.limpiezaAcopio.findFirst({
-      where: {
-        date: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
-        // userId: req.user.id,
+    const { from, to } = req.query;
+    if (!from || !to) {
+      return res.status(400).json({
+        message: "La fecha de inicio y la de fin son obligatorias",
+      });
+    }
+    const startDate = parseISO(from as string);
+    const endDate = parseISO(to as string);
+    if (!isValid(startDate) || !isValid(endDate)) {
+      return res.status(400).json({
+        message: "Las fechas proporcionadas no son válidas",
+      });
+    }
+    const startOfDayDate = startOfDay(startDate);
+    const endOfDayDate = endOfDay(endDate);
+    const whereClause: any = {
+      date: {
+        gte: startOfDayDate,
+        lte: endOfDayDate,
       },
+      // userId: req.user.id,
+    };
+    if (req.user.id !== "") {
+      whereClause.userId = req.user.id;
+    }
+
+    const limpieza = await prisma.limpiezaAcopio.findMany({
+      where: whereClause,
       orderBy: {
         date: "desc",
       },
     });
-
     if (!limpieza) {
       return res
         .status(404)

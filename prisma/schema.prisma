@@ -70,6 +70,9 @@ model LimpiezaAcopio {
   limpiezasuperficies Boolean?
   lavadosuperficies   Boolean?
   lavadoparedes       Boolean?
+  lavadopisos         Boolean?
+  controlplagas       Boolean?
+  limpiezaparedes     Boolean?
   responsable         String
   insumosutilizados   String
   imagenes            Json?
