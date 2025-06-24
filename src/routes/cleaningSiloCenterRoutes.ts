@@ -5,7 +5,7 @@ import {
   getLimpiezaSiloById,
   getLimpiezaByDate,
   deleteLimpieza,
-} from "../controllers/CleaningSiloController";
+} from "../controllers/cleaningSiloController";
 import { body } from "express-validator";
 import { isAuthenticated } from "../middleware/auth";
 import { handleInputErrors } from "../middleware/validation";
