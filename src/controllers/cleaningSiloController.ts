@@ -152,9 +152,9 @@ export const getLimpiezaByDate = async (
         lte: endOfDayDate,
       },
     };
-    if (req.user.id !== "") {
-      whereClause.userId = req.user.id;
-    }
+    // if (req.user.id !== "") {
+    //   whereClause.userId = req.user.id;
+    // }
 
     const limpieza = await prisma.limpiezaSilo.findMany({
       where: whereClause,
