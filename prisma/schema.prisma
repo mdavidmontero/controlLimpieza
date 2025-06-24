@@ -77,3 +77,36 @@ model LimpiezaAcopio {
   insumosutilizados   String
   imagenes            Json?
 }
+
+model TrampasPegajosas {
+  id              Int       @id @default(autoincrement())
+  fecha           DateTime
+  lugarcolocacion String?
+  tipotrampa      String?
+  cantidadtrampas String?
+  plagamonitor    String?
+  fecharecambio   DateTime?
+  imagenes        Json?
+  responsable     String
+}
+
+enum controlPlagas {
+  PREVENTIVO
+  CORRECTIVO
+}
+
+model LimpiezaSilo {
+  id                  Int           @id @default(autoincrement())
+  userId              String
+  date                DateTime
+  silouno             Boolean?
+  silodos             Boolean?
+  clasificadoragranos Boolean?
+  patiossecado        Boolean?
+  barridoaspirado     Boolean?
+  otrasintervenciones String?
+  controlplagas       controlPlagas
+  insumosutilizados   String
+  observaciones       String
+  responsable         String
+}
