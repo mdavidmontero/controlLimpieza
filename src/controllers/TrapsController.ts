@@ -43,7 +43,7 @@ export const registerTraps = async (
   }
 };
 
-export const getTraps = async (req: Request, res: Response) => {
+export const getTraps = async (req: Request, res: Response): Promise<any> => {
   try {
     const { from, to } = req.query;
     if (!from || !to) {
@@ -61,14 +61,11 @@ export const getTraps = async (req: Request, res: Response) => {
     const startOfDayDate = startOfDay(startDate);
     const endOfDayDate = endOfDay(endDate);
     const whereClause: any = {
-      date: {
+      fecha: {
         gte: startOfDayDate,
         lte: endOfDayDate,
       },
     };
-    if (req.user.id !== "") {
-      whereClause.userId = req.user.id;
-    }
 
     const traps = await prisma.trampasPegajosas.findMany({
       where: whereClause,
@@ -83,7 +80,10 @@ export const getTraps = async (req: Request, res: Response) => {
   }
 };
 
-export const updateTraps = async (req: Request, res: Response) => {
+export const updateTraps = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
   try {
     const {
       fecha,
@@ -92,7 +92,7 @@ export const updateTraps = async (req: Request, res: Response) => {
       cantidadtrampas,
       plagamonitor,
       fecharecambio,
-      imagenes,
+      responsable,
     } = req.body;
 
     const data = {
@@ -102,7 +102,7 @@ export const updateTraps = async (req: Request, res: Response) => {
       cantidadtrampas,
       plagamonitor,
       fecharecambio,
-      imagenes,
+      responsable,
     };
 
     const controlTramps = await prisma.trampasPegajosas.findFirst({
@@ -117,7 +117,9 @@ export const updateTraps = async (req: Request, res: Response) => {
     }
 
     await prisma.trampasPegajosas.update({
-      where: { id: +req.params.id },
+      where: {
+        id: controlTramps.id,
+      },
       data,
     });
 
@@ -143,7 +145,10 @@ export const deleteTraps = async (req: Request, res: Response) => {
   }
 };
 
-export const getTrapsById = async (req: Request, res: Response) => {
+export const getTrapsById = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
   try {
     const { id } = req.params;
 
@@ -163,15 +168,15 @@ export const getTrapsById = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
-
 export const uploadImagesTraps = async (req: Request, res: Response) => {
   const trapsId = parseInt(req.params.id);
 
   const form = formidable({ multiples: true });
 
   form.parse(req, async (err, fields, files) => {
-    if (err)
+    if (err) {
       return res.status(500).json({ error: "Error al parsear el formulario" });
+    }
 
     const fileArray = Array.isArray(files.file) ? files.file : [files.file];
 
@@ -179,21 +184,21 @@ export const uploadImagesTraps = async (req: Request, res: Response) => {
       const uploads = await Promise.all(
         fileArray.map((file: any) =>
           cloudinary.uploader.upload(file.filepath, {
+            transformation: [{ quality: "60" }],
             public_id: uuid(),
           })
         )
       );
+
       const traps = await prisma.trampasPegajosas.findUnique({
         where: { id: trapsId },
       });
+
       const currentImages = Array.isArray(traps?.imagenes)
         ? traps.imagenes
         : [];
 
-      const newImages = uploads.map((img) => ({
-        url: img.secure_url,
-        public_id: img.public_id,
-      }));
+      const newImages = uploads.map((img) => img.secure_url);
 
       const updatedImages = [...currentImages, ...newImages];
 
@@ -204,10 +209,56 @@ export const uploadImagesTraps = async (req: Request, res: Response) => {
         },
       });
 
+      // 👇 Solo retornamos el array de URLs como string[]
       res.json({ images: updatedImages });
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: "Error al subir imágenes" });
     }
   });
+};
+
+export const deleteImageTraps = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+
+  try {
+    const trampa = await prisma.trampasPegajosas.findUnique({
+      where: { id: +id },
+    });
+
+    if (!trampa) {
+      return res.status(404).json({ error: "Trampa no encontrada" });
+    }
+
+    const rawImages = trampa.imagenes;
+    const currentImages =
+      Array.isArray(rawImages) &&
+      rawImages.every((item) => typeof item === "string")
+        ? rawImages
+        : [];
+
+    const publicId = imageUrl.split("/").pop()?.split(".")[0];
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId);
+    }
+
+    const updatedImages = currentImages.filter((img) => img !== imageUrl);
+
+    await prisma.trampasPegajosas.update({
+      where: { id: +id },
+      data: { imagenes: updatedImages },
+    });
+
+    return res.json({
+      message: "Imagen eliminada correctamente",
+      images: updatedImages,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error al eliminar imagen" });
+  }
 };
