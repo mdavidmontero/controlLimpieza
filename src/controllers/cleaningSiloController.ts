@@ -73,7 +73,6 @@ export const updateLimpizaSilo = async (
 
     const limpiezaSilo = await prisma.limpiezaSilo.findFirst({
       where: {
-        userId,
         id: +req.params.id,
       },
     });
