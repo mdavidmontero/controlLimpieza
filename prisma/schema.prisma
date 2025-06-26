@@ -103,10 +103,46 @@ model LimpiezaSilo {
   silodos             Boolean?
   clasificadoragranos Boolean?
   patiossecado        Boolean?
+  otraarea            String?
   barridoaspirado     Boolean?
   otrasintervenciones String?
   controlplagas       controlPlagas
   insumosutilizados   String
   observaciones       String
   responsable         String
+}
+
+enum Estado {
+  BUENO
+  REGULAR
+  MALO
+  DESARMADO
+}
+
+enum Mantenimiento {
+  PREVENTIVO
+  CORRECTIVO
+  INSTALACION
+  DESMONTAJE
+}
+
+model MantemientoEquipos {
+  id                     Int           @id @default(autoincrement())
+  nombre                 String
+  marca                  String
+  modelo                 String
+  nroserie               String?
+  fechacompra            DateTime
+  nroplaca               String?
+  referencia             String?
+  potencia               String?
+  area                   String
+  estado                 Estado
+  descripcionsituacion   String
+  mantenimiento          Mantenimiento
+  descripcionmantemiento String
+  falla                  String
+  descripcionfalla       String
+  proximomantenimiento   DateTime
+  motivomantenimiento    String
 }

@@ -14,6 +14,7 @@ export const registerLimpiezaSilo = async (
       silodos,
       clasificadoragranos,
       patiossecado,
+      otraarea,
       barridoaspirado,
       otrasintervenciones,
       controlplagas,
@@ -30,6 +31,7 @@ export const registerLimpiezaSilo = async (
       clasificadoragranos,
       patiossecado,
       barridoaspirado,
+      otraarea,
       otrasintervenciones,
       controlplagas,
       insumosutilizados,
@@ -61,6 +63,7 @@ export const updateLimpizaSilo = async (
       clasificadoragranos,
       patiossecado,
       barridoaspirado,
+      otraarea,
       otrasintervenciones,
       controlplagas,
       insumosutilizados,
@@ -87,6 +90,7 @@ export const updateLimpizaSilo = async (
       clasificadoragranos,
       patiossecado,
       barridoaspirado,
+      otraarea,
       otrasintervenciones,
       controlplagas,
       insumosutilizados,
@@ -162,7 +166,6 @@ export const getLimpiezaByDate = async (
         date: "desc",
       },
     });
-    console.log(limpieza);
     if (!limpieza) {
       return res
         .status(404)
