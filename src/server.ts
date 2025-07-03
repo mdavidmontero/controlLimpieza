@@ -8,6 +8,7 @@ import cleaningCenter from "./routes/CleaningCenterRoutes";
 import cleaningSiloCenter from "./routes/cleaningSiloCenterRoutes";
 import equipmentCenter from "./routes/equipmentCenterRoutes";
 import trapsRouter from "./routes/trapRoutes";
+import visitCenter from "./routes/VisitCenterRoutes";
 import { corsConfig } from "./config/cors";
 import cronservice from "./routes/cronService";
 dotenv.config();
@@ -26,5 +27,6 @@ app.use("/api/traps", trapsRouter);
 app.use("/api/cron", cronservice);
 app.use("/api/cleaning-silo", cleaningSiloCenter);
 app.use("/api/equipment-center", equipmentCenter);
+app.use("/api/visit-center", visitCenter);
 
 export default app;

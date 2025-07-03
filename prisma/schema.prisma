@@ -149,3 +149,46 @@ model MantemientoEquipos {
   tecnico                String
   responsable            String
 }
+
+enum Evaluacion {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+model SolicitudVisita {
+  id              Int               @id @default(autoincrement())
+  municipio       String
+  dia             String
+  mes             String
+  anio            String
+  nombres         String
+  empresa         String
+  area            String
+  email           String
+  telefono        String
+  fechaVisitaDia  String
+  fechaVisitaMes  String
+  fechaVisitaAnio String
+  horaInicio      String
+  horaFin         String
+  dependencia     String
+  objeto          String
+  material        String
+  evaluacion      Evaluacion        @default(PENDIENTE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  documentVisit   String?
+  asistentes      AsistenteVisita[]
+}
+
+model AsistenteVisita {
+  id              Int    @id @default(autoincrement())
+  nombres         String
+  tipoDocumento   String
+  numeroDocumento String
+  dependencia     String
+
+  solicitudId Int
+  solicitud   SolicitudVisita @relation(fields: [solicitudId], references: [id])
+}
