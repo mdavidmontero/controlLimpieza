@@ -6,6 +6,7 @@ import authRouter from "./routes/authRoutes";
 import attendanceRouter from "./routes/attendanceRoutes";
 import cleaningCenter from "./routes/CleaningCenterRoutes";
 import cleaningSiloCenter from "./routes/cleaningSiloCenterRoutes";
+import equipmentCenter from "./routes/equipmentCenterRoutes";
 import trapsRouter from "./routes/trapRoutes";
 import { corsConfig } from "./config/cors";
 import cronservice from "./routes/cronService";
@@ -24,5 +25,6 @@ app.use("/api/cleaning-center", cleaningCenter);
 app.use("/api/traps", trapsRouter);
 app.use("/api/cron", cronservice);
 app.use("/api/cleaning-silo", cleaningSiloCenter);
+app.use("/api/equipment-center", equipmentCenter);
 
 export default app;

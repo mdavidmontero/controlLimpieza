@@ -128,6 +128,7 @@ enum Mantenimiento {
 
 model MantemientoEquipos {
   id                     Int           @id @default(autoincrement())
+  fecharealizado         DateTime
   nombre                 String
   marca                  String
   modelo                 String
@@ -145,4 +146,6 @@ model MantemientoEquipos {
   descripcionfalla       String
   proximomantenimiento   DateTime
   motivomantenimiento    String
+  tecnico                String
+  responsable            String
 }
