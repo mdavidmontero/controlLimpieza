@@ -5,6 +5,7 @@ import { supabase } from "../config/supabase";
 import fs from "fs";
 import { v4 as uuid } from "uuid";
 import formidable from "formidable";
+import { AsistenteVisita } from "@prisma/client";
 
 export const registerVisit = async (
   req: Request,
@@ -34,32 +35,37 @@ export const registerVisit = async (
       documentVisit,
     } = req.body;
 
-    const data = {
-      municipio,
-      dia,
-      mes,
-      anio,
-      nombres,
-      empresa,
-      area,
-      email,
-      telefono,
-      fechaVisitaDia,
-      fechaVisitaMes,
-      fechaVisitaAnio,
-      horaInicio,
-      horaFin,
-      dependencia,
-      objeto,
-      material,
-      evaluacion,
-      asistentes,
-      documentVisit,
-    };
-
-    await prisma.solicitudVisita.create({ data });
+    await prisma.solicitudVisita.create({
+      data: {
+        municipio,
+        dia,
+        mes,
+        anio,
+        nombres,
+        empresa,
+        area,
+        email,
+        telefono,
+        fechaVisitaDia,
+        fechaVisitaMes,
+        fechaVisitaAnio,
+        horaInicio,
+        horaFin,
+        dependencia,
+        objeto,
+        material,
+        evaluacion,
+        asistentes: asistentes.map((asistente: AsistenteVisita) => ({
+          nombres: asistente.nombres,
+          tipoDocumento: asistente.tipoDocumento,
+          numeroDocumento: asistente.numeroDocumento,
+          dependencia: asistente.dependencia,
+        })),
+        documentVisit,
+      },
+    });
     res.send(
-      "Visita Solicita Correctamente, se le informara por correo electrónico el resultado, en cuanto se acepte se le enviará un documento con el registro de la visita"
+      "Visita Solicita Correctamente, se le informara por correo electrónico el resultado, en cuanto se acepte se le enviará un documento con el registro de la visita, puede agregar mas asistentes si lo desea"
     );
   } catch (error) {
     return res.status(500).json({ message: "Error al registrar visita" });
