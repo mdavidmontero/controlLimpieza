@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid())
+  id          String            @id @default(uuid())
   name        String
   email       String
   password    String
   confirmed   Boolean
-  role        Role         @default(USER)
-  token       String       @default("")
+  role        Role              @default(USER)
+  token       String            @default("")
   image       String?
   cargo       String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   attendances Attendance[]
+  visitCenter SolicitudVisita[]
 }
 
 model Attendance {
@@ -46,6 +47,12 @@ model Attendance {
 enum Role {
   USER
   ADMIN
+  COORDINACIONTECNICA
+  CALIDAD
+  ADMINISTRATIVA
+  BODEGA
+  SISTEMAS
+  LIMPIEZA
 }
 
 // Limpieza de centro de acopio
@@ -180,6 +187,8 @@ model SolicitudVisita {
   updatedAt       DateTime          @updatedAt
   documentVisit   String?
   asistentes      AsistenteVisita[]
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
 }
 
 model AsistenteVisita {
@@ -190,5 +199,5 @@ model AsistenteVisita {
   dependencia     String
 
   solicitudId Int
-  solicitud   SolicitudVisita @relation(fields: [solicitudId], references: [id])
+  solicitud   SolicitudVisita @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
 }

@@ -55,19 +55,24 @@ export const registerVisit = async (
         objeto,
         material,
         evaluacion,
-        asistentes: asistentes.map((asistente: AsistenteVisita) => ({
-          nombres: asistente.nombres,
-          tipoDocumento: asistente.tipoDocumento,
-          numeroDocumento: asistente.numeroDocumento,
-          dependencia: asistente.dependencia,
-        })),
+        asistentes: {
+          create: asistentes.map((asistente: AsistenteVisita) => ({
+            nombres: asistente.nombres,
+            tipoDocumento: asistente.tipoDocumento,
+            numeroDocumento: asistente.numeroDocumento,
+            dependencia: asistente.dependencia,
+          })),
+        },
         documentVisit,
+        userId: req.user.id,
       },
     });
+
     res.send(
-      "Visita Solicita Correctamente, se le informara por correo electrónico el resultado, en cuanto se acepte se le enviará un documento con el registro de la visita, puede agregar mas asistentes si lo desea"
+      "se le informara por correo electrónico el resultado, en cuanto se acepte se le enviará un documento con el registro de la visita, puede agregar mas asistentes si lo desea"
     );
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Error al registrar visita" });
   }
 };
@@ -131,6 +136,7 @@ export const updateVisit = async (
       evaluacion,
       asistentes,
       documentVisit,
+      userId: req.user.id,
     };
     await prisma.solicitudVisita.update({
       where: { id: visitExist.id },
@@ -170,6 +176,29 @@ export const updateStatusVisit = async (
     res
       .status(500)
       .json({ message: "Error al actualizar el estado de la visita" });
+  }
+};
+
+export const getVisitCenterByUser = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const visits = await prisma.solicitudVisita.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      include: {
+        asistentes: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json(visits);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener las visitas" });
   }
 };
 
