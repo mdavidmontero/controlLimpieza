@@ -53,6 +53,7 @@ enum Role {
   BODEGA
   SISTEMAS
   LIMPIEZA
+  CONTABILIDAD
 }
 
 // Limpieza de centro de acopio
