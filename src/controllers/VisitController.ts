@@ -6,6 +6,7 @@ import fs from "fs";
 import { v4 as uuid } from "uuid";
 import formidable from "formidable";
 import { AsistenteVisita } from "@prisma/client";
+import { ConfirmVisit } from "../emails/EmailVisitConfirm";
 
 export const registerVisit = async (
   req: Request,
@@ -156,23 +157,39 @@ export const updateStatusVisit = async (
 ): Promise<any> => {
   try {
     const { id, evaluacion } = req.body;
+
     const visitExist = await prisma.solicitudVisita.findFirst({
       where: {
         id: +id,
       },
     });
+
     if (!visitExist) {
       return res.status(404).json({ message: "Visita no encontrada" });
     }
 
-    await prisma.solicitudVisita.update({
+    const updatedVisit = await prisma.solicitudVisita.update({
       where: { id: visitExist.id },
       data: {
-        evaluacion,
+        evaluacion: evaluacion,
       },
     });
-    res.send("Estado de la visita actualizado Correctamente");
+
+    // Verificamos el nuevo estado, no el anterior
+    if (evaluacion.toUpperCase() === "APROBADO") {
+      await ConfirmVisit.sendConfirmationVisit({
+        email: updatedVisit.email,
+        name: updatedVisit.nombres,
+        estado: updatedVisit.evaluacion,
+        visita: updatedVisit,
+      });
+    }
+
+    res.send(
+      "Estado de la visita actualizado correctamente. Se envió un correo al visitante si la visita fue aprobada."
+    );
   } catch (error) {
+    console.error(error);
     res
       .status(500)
       .json({ message: "Error al actualizar el estado de la visita" });
@@ -226,7 +243,7 @@ export const getVisitByDate = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { from, to, empresa, limit = "10", offset = "0" } = req.query;
+    const { from, to, empresa, limit = "10", page } = req.query;
 
     const whereClause: any = {};
 
@@ -254,7 +271,8 @@ export const getVisitByDate = async (
     }
 
     const take = parseInt(limit as string, 10);
-    const skip = parseInt(offset as string, 10);
+    const currentPage = parseInt(page as string, 10);
+    const skip = (currentPage - 1) * take;
 
     const total = await prisma.solicitudVisita.count({
       where: whereClause,
@@ -270,16 +288,14 @@ export const getVisitByDate = async (
     });
 
     const totalPages = Math.ceil(total / take);
-    const currentPage = Math.floor(skip / take) + 1;
 
     res.json({
       total,
       limit: take,
-      offset: skip,
+      page: currentPage,
       totalPages,
-      currentPage,
-      nextOffset: skip + take < total ? skip + take : null,
-      prevOffset: skip - take >= 0 ? skip - take : null,
+      nextPage: currentPage < totalPages ? currentPage + 1 : null,
+      prevPage: currentPage > 1 ? currentPage - 1 : null,
       data: visits,
     });
   } catch (error) {
