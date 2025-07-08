@@ -69,7 +69,7 @@ export const registerVisit = async (
     });
 
     res.send(
-      "se le informara por correo electrónico el resultado, en cuanto se acepte se le enviará un documento con el registro de la visita, puede agregar mas asistentes si lo desea"
+      "se le informara por correo electrónico el resultado, en cuanto se acepte se le enviará un documento con el registro de la visita"
     );
   } catch (error) {
     console.log(error);
