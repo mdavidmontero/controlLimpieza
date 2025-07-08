@@ -54,6 +54,7 @@ enum Role {
   SISTEMAS
   LIMPIEZA
   CONTABILIDAD
+  TRABAJADORES
 }
 
 // Limpieza de centro de acopio
