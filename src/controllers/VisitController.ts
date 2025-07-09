@@ -7,6 +7,7 @@ import { v4 as uuid } from "uuid";
 import formidable from "formidable";
 import { AsistenteVisita } from "@prisma/client";
 import { ConfirmVisit } from "../emails/EmailVisitConfirm";
+import path from "path";
 
 export const registerVisit = async (
   req: Request,
@@ -345,20 +346,21 @@ export const uploadPdf = async (
         return res.status(500).json({ error: "Error al procesar el archivo" });
       }
 
-      const file = files.file;
-      if (!file || !file[0]) {
+      const file = files.file?.[0];
+      if (!file) {
         return res.status(400).json({ error: "Archivo no encontrado" });
       }
 
-      const filePath = file[0].filepath;
-      const fileName = `${uuid()}.pdf`;
+      const filePath = file.filepath;
+      const extension = path.extname(file.originalFilename || "") || ".pdf";
+      const fileName = `${uuid()}${extension}`;
 
       const fileBuffer = fs.readFileSync(filePath);
 
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("serviciosgenerales")
         .upload(fileName, fileBuffer, {
-          contentType: file[0].mimetype || "application/pdf",
+          contentType: file.mimetype || "application/pdf",
         });
 
       if (uploadError) {
@@ -372,9 +374,35 @@ export const uploadPdf = async (
         .from("serviciosgenerales")
         .getPublicUrl(fileName);
 
-      res.json({
-        file: publicUrlData.publicUrl,
+      const visit = await prisma.solicitudVisita.findFirst({
+        where: { id: +req.params.id },
       });
+
+      if (!visit) {
+        return res.status(404).json({ message: "Visita no encontrada" });
+      }
+
+      if (visit.documentVisit) {
+        const filePathParts = visit.documentVisit.split("/");
+        const prevFileName = filePathParts[filePathParts.length - 1];
+
+        const { error: removeError } = await supabase.storage
+          .from("serviciosgenerales")
+          .remove([prevFileName]);
+
+        if (removeError) {
+          console.error("Error al eliminar archivo anterior", removeError);
+        }
+      }
+
+      await prisma.solicitudVisita.update({
+        where: { id: +req.params.id },
+        data: {
+          documentVisit: publicUrlData.publicUrl,
+        },
+      });
+
+      return res.send("Documento subido correctamente");
     });
   } catch (e) {
     console.error(e);

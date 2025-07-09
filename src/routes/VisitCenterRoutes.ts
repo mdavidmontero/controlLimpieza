@@ -19,6 +19,6 @@ router.patch("/update-visit/:id", isAuthenticated, updateVisit);
 router.delete("/delete-visit/:id", isAuthenticated, updateVisit);
 router.get("/get-visit-by-date", isAuthenticated, getVisitByDate);
 router.patch("/update-status-visit/:id", isAuthenticated, updateStatusVisit);
-router.post("/upload-pdf", uploadPdf);
+router.post("/upload-pdf/:id", isAuthenticated, uploadPdf);
 
 export default router;
