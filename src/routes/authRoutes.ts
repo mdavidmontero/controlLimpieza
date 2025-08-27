@@ -2,11 +2,8 @@ import { Router } from "express";
 import { body, param } from "express-validator";
 import {
   createAccount,
-  confirmAccount,
   login,
-  forgotPassword,
   validateToken,
-  requestConfirmationCode,
   uploadImage,
   getUser,
   updateProfile,
@@ -44,27 +41,6 @@ router.post(
   body("password").notEmpty().withMessage("La contraseña no puede ir vacia"),
   handleInputErrors,
   login
-);
-
-router.post(
-  "/confirm-account",
-  body("token").notEmpty().withMessage("El Token no puede ir vacio"),
-  handleInputErrors,
-  confirmAccount
-);
-
-router.post(
-  "/forgot-password",
-  body("email").isEmail().withMessage("Email inválido"),
-  handleInputErrors,
-  forgotPassword
-);
-
-router.post(
-  "/request-code",
-  body("email").isEmail().withMessage("E-mail no válido"),
-  requestConfirmationCode,
-  handleInputErrors
 );
 
 router.post(

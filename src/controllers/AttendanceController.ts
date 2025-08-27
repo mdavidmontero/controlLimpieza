@@ -143,12 +143,6 @@ export const registerAfternoon = async (
     }
 
     if (tipo === "salida") {
-      // if (!attendance?.afternoonIn) {
-      //   return res
-      //     .status(400)
-      //     .json({ error: "Primero debes registrar la entrada de la tarde" });
-      // }
-
       if (attendance?.afternoonOut) {
         return res
           .status(400)
