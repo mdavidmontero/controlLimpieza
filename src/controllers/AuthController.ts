@@ -34,10 +34,14 @@ export const createAccount = async (
       confirmed: true,
       token: generateToken(),
     };
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: data,
     });
-    res.send("Cuenta creada correctamente");
+    delete user.password;
+    res.json({
+      user: user,
+      token: generateJWT({ id: user.id }),
+    });
   } catch (error) {
     console.log(error);
   }
@@ -63,7 +67,11 @@ export const login = async (req: Request, res: Response): Promise<any> => {
       return res.status(401).json({ error: error.message });
     }
     const token = generateJWT({ id: user.id });
-    res.send(token);
+    delete user.password;
+    res.json({
+      user: user,
+      token: token,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Hubo un error" });
@@ -132,7 +140,7 @@ export const uploadImage = async (
   }
 };
 export const getUser = async (req: Request, res: Response): Promise<any> => {
-  return res.json(req.user);
+  return res.json({ user: req.user, token: req.token });
 };
 
 export const updateProfile = async (

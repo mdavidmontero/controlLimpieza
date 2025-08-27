@@ -13,6 +13,7 @@ declare global {
   namespace Express {
     interface Request {
       user: IUser;
+      token: string;
     }
   }
 }
@@ -47,6 +48,7 @@ export const isAuthenticated = async (
       });
       if (user) {
         req.user = user;
+        req.token = token;
         next();
       } else {
         res.status(401).json({ error: "No Autorizado" });

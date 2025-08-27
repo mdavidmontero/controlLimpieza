@@ -50,7 +50,7 @@ router.post(
   validateToken
 );
 
-router.get("/user", isAuthenticated, getUser);
+router.get("/check-status", isAuthenticated, getUser);
 router.get("/users", getUsers);
 router.post("/upload-image", isAuthenticated, uploadImage);
 router.patch("/userstatus", isAuthenticated, updateUserStatus);
