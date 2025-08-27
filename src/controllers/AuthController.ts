@@ -13,7 +13,7 @@ export const createAccount = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, tipouser } = req.body;
 
     const userExist = await prisma.user.findFirst({
       where: {
@@ -33,6 +33,7 @@ export const createAccount = async (
       password: passwordHash,
       confirmed: true,
       token: generateToken(),
+      role: tipouser,
     };
     const user = await prisma.user.create({
       data: data,

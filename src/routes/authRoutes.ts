@@ -31,6 +31,9 @@ router.post(
     }
     return true;
   }),
+  body("tipouser")
+    .isIn(["USER", "TRABAJADORES"])
+    .withMessage("Tipo de usuario inválido"),
   handleInputErrors,
   createAccount
 );
